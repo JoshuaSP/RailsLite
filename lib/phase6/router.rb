@@ -11,7 +11,7 @@ module Phase6
 
     # checks if pattern matches path and method matches request method
     def matches?(req)
-      req.request_method.downcase.to_sym == http_method && !!pattern.match(req.path) 
+      req.request_method.downcase.to_sym == http_method && !!pattern.match(req.path)
     end
 
     # use pattern to pull out route params (save for later?)
@@ -29,6 +29,10 @@ module Phase6
 
     def initialize
       @routes = []
+    end
+
+    def route_paths
+      routes.map { |route| route.path }
     end
 
     # simply adds a new route to the list of routes

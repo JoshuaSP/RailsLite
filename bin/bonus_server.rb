@@ -1,5 +1,4 @@
 require 'webrick'
-require_relative '../lib/phase6/router'
 require_relative '../lib/bonus/bonus'
 
 
@@ -24,10 +23,14 @@ class StatusesController < Bonus::ControllerBase
     statuses = $statuses.select do |s|
       s[:cat_id] == Integer(params[:cat_id])
     end
+    require 'byebug'
 
     flash.now["coolness"] = "ahha!"
     flash["coolness"] = "later"
-    render_content(statuses.to_s + "\n" + @flash["coolness"], "text/text")
+    render_content(statuses.to_s + "\n" + @flash["coolness"] + "\n" + new_cat_path, "text/text")
+  end
+
+  def new
   end
 end
 
@@ -37,16 +40,36 @@ class Cats2Controller < Bonus::ControllerBase
   # end
   def index
   end
+
+  def new
+  end
+
+  def create
+    render_content(@req.body, "text/text")
+  end
 end
 
-router = Phase6::Router.new
+router = Bonus::Router.new
 router.draw do
-  get Regexp.new("^/cats$"), Cats2Controller, :index
-  get Regexp.new("^/cats/(?<cat_id>\\d+)/statuses$"), StatusesController, :index
+  # get Regexp.new("^/cats$"), Cats2Controller, :index
+  # get Regexp.new("^/cats/(?<cat_id>\\d+)/statuses$"), StatusesController, :index
+  get "/cats", Cats2Controller, :index
+  get "/cats/:cat_id/statuses", StatusesController, :index
+  get "/cats/new", Cats2Controller, :new
+  post "/cats", Cats2Controller, :create
+  delete "/cats/:id", Cats2Controller, :destroy
+end
+
+def rack_lite(req)
+  method_reg = /method=(patch|put|delete)/
+  if method_reg.match(req.body)
+    req.request_method = method_reg[1].upcase
+  end
 end
 
 server = WEBrick::HTTPServer.new(Port: 3000)
 server.mount_proc('/') do |req, res|
+  rack_lite(req)
   route = router.run(req, res)
 end
 

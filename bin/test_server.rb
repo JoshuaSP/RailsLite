@@ -1,12 +1,6 @@
 require 'webrick'
 require_relative '../lib/RailsLite/controller_base'
 
-
-# http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
-# http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPRequest.html
-# http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/HTTPResponse.html
-# http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick/Cookie.html
-
 $cats = [
   { id: 1, name: "Curie" },
   { id: 2, name: "Markov" }
@@ -35,9 +29,6 @@ class StatusesController < RailsLite::ControllerBase
 end
 
 class Cats2Controller < RailsLite::ControllerBase
-  # def index
-  #   render_content($cats.to_s, "text/text")
-  # end
   def index
   end
 

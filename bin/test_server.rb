@@ -1,5 +1,5 @@
 require 'webrick'
-require_relative '../lib/bonus/bonus'
+require_relative '../lib/RailsLite/controller_base'
 
 
 # http://www.ruby-doc.org/stdlib-2.0/libdoc/webrick/rdoc/WEBrick.html
@@ -18,7 +18,7 @@ $statuses = [
   { id: 3, cat_id: 1, text: "Curie is cool!" }
 ]
 
-class StatusesController < Bonus::ControllerBase
+class StatusesController < RailsLite::ControllerBase
   def index
     statuses = $statuses.select do |s|
       s[:cat_id] == Integer(params[:cat_id])
@@ -34,7 +34,7 @@ class StatusesController < Bonus::ControllerBase
   end
 end
 
-class Cats2Controller < Bonus::ControllerBase
+class Cats2Controller < RailsLite::ControllerBase
   # def index
   #   render_content($cats.to_s, "text/text")
   # end
@@ -49,7 +49,7 @@ class Cats2Controller < Bonus::ControllerBase
   end
 end
 
-router = Bonus::Router.new
+router = RailsLite::Router.new
 router.draw do
   # get Regexp.new("^/cats$"), Cats2Controller, :index
   # get Regexp.new("^/cats/(?<cat_id>\\d+)/statuses$"), StatusesController, :index

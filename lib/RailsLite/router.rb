@@ -1,9 +1,10 @@
-module Phase6
+module RailsLite
   class Route
-    attr_reader :pattern, :http_method, :controller_class, :action_name
+    attr_reader :pattern, :http_method, :controller_class, :action_name, :path
 
-    def initialize(pattern, http_method, controller_class, action_name)
-      @pattern = pattern
+    def initialize(path, http_method, controller_class, action_name)
+      @path = path
+      @pattern = pattern_from_path(path)
       @http_method = http_method
       @controller_class = controller_class
       @action_name = action_name
@@ -14,7 +15,11 @@ module Phase6
       req.request_method.downcase.to_sym == http_method && !!pattern.match(req.path)
     end
 
-    # use pattern to pull out route params (save for later?)
+    def pattern_from_path(path)
+      Regexp.new("^" + path.gsub(/:([\w_-]*)\//, '(?<\1>\d+)/') + "$")
+    end
+
+    # use pattern to pull out route params
     # instantiate controller and call controller action
     def run(req, res)
       matches = pattern.match(req.path)
@@ -41,9 +46,9 @@ module Phase6
     end
 
     # evaluate the proc in the context of the instance
-    # for syntactic sugar :)
     def draw(&proc)
       self.instance_eval(&proc)
+      create_route_helpers
     end
 
     # make each of these methods that
@@ -54,18 +59,45 @@ module Phase6
       end
     end
 
-    # should return the route that matches this request
     def match(req)
       @routes.find { |route| route.matches?(req) }
     end
 
-    # either throw 404 or call run on a matched route
     def run(req, res)
       route = self.match(req)
       if route
         route.run(req, res)
       else
         res.status = 404
+        render_content("you got a 404, baby", "text/text")
+      end
+    end
+
+    def create_route_helpers
+      routes.each do |route|
+        path_nouns = route.path[1..-1].split("/").reject { |noun| noun[0] == ":" }
+        path_nouns = path_nouns.each_with_index.map do |path_noun, index|
+          if index == path_nouns.length - 1
+            [:show, :new, :edit, :delete].include?(route.action_name) ? path_noun.singularize : path_noun
+          else
+            path_noun.singularize
+          end
+        end
+        if [:new, :edit].include?(route.action_name)
+          path_verb = route.action_name.to_s + "_"
+          path_nouns.pop
+        else
+          path_verb = ""
+        end
+        method_name = path_verb + path_nouns.join("_") + "_path"
+        wildcards = route.path.split("/").select { |noun| noun[0] == ":" }
+        RouteHelper.send(:define_method, method_name) do |*args|
+          raise "Wrong number of arguments" if args.length != wildcards.length
+          args.map! do |arg|
+            arg.is_a?(Integer) ? arg : arg.id
+          end
+          route.path.gsub(/:([\w_-]*)\//) { |m| args.shift.to_s + "/" }
+        end
       end
     end
   end

@@ -1,8 +1,7 @@
-require 'byebug'
 require 'json'
 require 'webrick'
 
-module Phase4
+module RailsLite
   class Session
     # find the cookie for this app
     # deserialize the cookie into a hash
@@ -24,9 +23,10 @@ module Phase4
     end
 
     # serialize the hash into json and save in a cookie
-    # add to the responses cookies
+    # add to the response's cookies
     def store_session(res)
       cookie = WEBrick::Cookie.new("_rails_lite_app", JSON.generate(@session))
+      cookie.path = "/"
       res.cookies << cookie
     end
   end
